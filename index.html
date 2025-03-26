@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gamepad Input Overlay</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: transparent;
+            color: white;
+            font-family: Arial, sans-serif;
+            user-select: none;
+            -webkit-app-region: drag; /* Makes the entire window draggable */
+        }
+        .container {
+            background: rgba(34, 34, 34, 0.7);
+            padding: 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .meters {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .meter {
+            width: 50px;
+            height: 200px;
+            background: rgba(68, 68, 68, 0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+        .fill {
+            width: 100%;
+            background: limegreen;
+            transition: height 0.05s ease-out;
+        }
+        .horizontal-meter {
+            width: 300px;
+            height: 30px;
+            background: rgba(68, 68, 68, 0.5);
+            border-radius: 10px;
+            position: relative;
+            margin-top: 20px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .h-fill {
+            position: absolute;
+            height: 100%;
+            width: 0%;
+            background: dodgerblue;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: width 0.05s ease-out, left 0.05s ease-out;
+        }
+        /* Disable drag on interactive elements */
+        select, button {
+            -webkit-app-region: no-drag;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="meters">
+            <div class="meter">
+                <div class="fill" id="lt-fill" style="height: 0%;"></div>
+            </div>
+            <div class="meter">
+                <div class="fill" id="rt-fill" style="height: 0%;"></div>
+            </div>
+        </div>
+        <div class="horizontal-meter">
+            <div class="h-fill" id="lx-fill" style="width: 0%;"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedGamepadIndex = 0;
+        function updateGamepad() {
+            const gamepad = navigator.getGamepads()[selectedGamepadIndex];
+            if (gamepad) {
+                let ltValue = (gamepad.buttons[6]?.value || 0) * 100;
+                let rtValue = (gamepad.buttons[7]?.value || 0) * 100;
+                let lxValue = gamepad.axes[0];
+                let lxWidth = Math.min(Math.abs(lxValue) * 100, 100);
+                let lxPosition = 50 + (lxValue * 50);
+
+                document.getElementById("lt-fill").style.height = `${ltValue}%`;
+                document.getElementById("rt-fill").style.height = `${rtValue}%`;
+                document.getElementById("lx-fill").style.width = `${lxWidth}%`;
+                document.getElementById("lx-fill").style.left = `${Math.max(0, Math.min(lxPosition, 100))}%`;
+            }
+            requestAnimationFrame(updateGamepad);
+        }
+
+        window.addEventListener("gamepadconnected", () => {
+            requestAnimationFrame(updateGamepad);
+        });
+
+        const gamepads = navigator.getGamepads();
+        if (gamepads[0]) {
+            requestAnimationFrame(updateGamepad);
+        }
+    </script>
+</body>
+</html>
